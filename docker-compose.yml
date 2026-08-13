@@ -1,0 +1,20 @@
+services:
+
+  db:
+    image: postgres:17
+    container_name: traderoom_db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: traderoom
+      POSTGRES_USER: traderoom
+      POSTGRES_PASSWORD: traderoom_password
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
