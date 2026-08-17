@@ -10,7 +10,7 @@ from .views import (
     RoomListView,
     RoomMembersView,
 )
-
+from .market_views import AssetPriceView
 
 urlpatterns = [
     path(
@@ -54,5 +54,11 @@ urlpatterns = [
         "<int:room_id>/messages/",
         MessageHistoryView.as_view(),
         name="room-messages",
+    ),
+
+    path(
+    "assets/<str:symbol>/price/",
+    AssetPriceView.as_view(),
+    name="asset-price",
     ),
 ]

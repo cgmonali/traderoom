@@ -102,7 +102,7 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
 }
 
-
+#We are using different Redis databases: this keeps responsibility separated
 CELERY_BROKER_URL = "redis://127.0.0.1:6379/1"
 
 CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/2"
@@ -130,6 +130,15 @@ DATABASES = {
         "PORT": "5432",
     }
 }
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/3",
+    }
+}
+
+
 
 
 # Password validation

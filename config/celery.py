@@ -1,6 +1,7 @@
 import os
 
 from celery import Celery
+from celery.schedules import crontab
 
 
 os.environ.setdefault(
@@ -21,3 +22,11 @@ app.config_from_object(
 
 
 app.autodiscover_tasks()
+
+
+app.conf.beat_schedule = {
+    "update-market-prices-every-minute": {
+        "task": "rooms.tasks.update_market_prices",
+        "schedule": 60.0,
+    },
+}
