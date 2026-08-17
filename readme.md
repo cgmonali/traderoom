@@ -744,3 +744,49 @@ Celery
 Docker
 
 into a single enterprise-style backend project focused on real-time trader collaboration.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Message History
+Added an API to retrieve previous messages from a trading room.
+Messages are returned with:
+Message ID
+Username
+Message content
+Created timestamp
+Only authenticated room members can access message history.
+Used select_related("user") to optimize database queries.
+Endpoint
+GET /api/rooms/<room_id>/messages/
+
+Example:
+
+GET /api/rooms/1/messages/
+Message Pagination
+Added pagination to the message history API.
+Messages are limited to 20 per page.
+Supports page-based navigation.
+Endpoints
+GET /api/rooms/1/messages/?page=1
+GET /api/rooms/1/messages/?page=2
+Response includes
+count
+next
+previous
+results
+
+This prevents the application from loading all room messages at once and makes the chat history more scalable.
