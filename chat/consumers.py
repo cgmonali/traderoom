@@ -3,8 +3,9 @@ import json
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-from rooms.models import Room,RoomMember
+from rooms.models import Room
 from .models import Message
+from .tasks import analyze_message
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -27,7 +28,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         user = self.scope.get("user")
 
-        if user is None or user.is_anonymous:
+        if user is None or not user.is_authenticated:
             await self.close()
             return
 
@@ -75,6 +76,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             content,
         )
 
+        analyze_message.delay(
+            saved_message["id"]
+        )
+
         await self.channel_layer.group_send(
             self.group_name,
             {
@@ -109,6 +114,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
         return {
+            "id": msg.id,
             "content": msg.content,
             "username": msg.user.username,
             "created_at": msg.created_at.isoformat(),
