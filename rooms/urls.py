@@ -1,5 +1,7 @@
 from django.urls import path
 
+from chat.views import MessageHistoryView
+
 from .views import (
     AssetListView,
     JoinRoomView,
@@ -45,5 +47,12 @@ urlpatterns = [
         "<int:room_id>/members/",
         RoomMembersView.as_view(),
         name="room-members",
+    ),
+
+    # Message history
+    path(
+        "<int:room_id>/messages/",
+        MessageHistoryView.as_view(),
+        name="room-messages",
     ),
 ]

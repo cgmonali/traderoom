@@ -3,17 +3,42 @@ import json
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-from rooms.models import Room
+from rooms.models import Room,RoomMember
 from .models import Message
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
 
+    @sync_to_async
+    def check_membership(self, user, room_id):
+
+        return RoomMember.objects.filter(
+            room_id=room_id,
+            user=user,
+        ).exists()
+
     async def connect(self):
 
-        self.room_id = self.scope["url_route"]["kwargs"]["room_id"]
+        self.room_id = self.scope[
+            "url_route"
+        ]["kwargs"]["room_id"]
 
         self.group_name = f"room_{self.room_id}"
+
+        user = self.scope.get("user")
+
+        if user is None or user.is_anonymous:
+            await self.close()
+            return
+
+        is_member = await self.check_membership(
+            user,
+            self.room_id,
+        )
+
+        if not is_member:
+            await self.close(code=4003)
+            return
 
         await self.channel_layer.group_add(
             self.group_name,
@@ -33,13 +58,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         data = json.loads(text_data)
 
-        message = data["message"]
+        content = data.get("message")
+
+        if not content:
+            await self.send(
+                text_data=json.dumps({
+                    "error": "Message cannot be empty."
+                })
+            )
+            return
 
         user = self.scope["user"]
 
         saved_message = await self.save_message(
             user,
-            message,
+            content,
         )
 
         await self.channel_layer.group_send(
@@ -55,13 +88,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def chat_message(self, event):
 
         await self.send(
-            text_data=json.dumps(
-                {
-                    "message": event["message"],
-                    "username": event["username"],
-                    "created_at": event["created_at"],
-                }
-            )
+            text_data=json.dumps({
+                "message": event["message"],
+                "username": event["username"],
+                "created_at": event["created_at"],
+            })
         )
 
     @sync_to_async
