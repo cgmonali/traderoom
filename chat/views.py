@@ -1,3 +1,4 @@
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -6,7 +7,7 @@ from rooms.models import Room, RoomMember
 
 from .models import Message
 from .serializers import MessageSerializer
-
+from django.shortcuts import get_object_or_404
 
 
 
@@ -18,8 +19,9 @@ class MessageHistoryView(APIView):
 
     def get(self, request, room_id):
 
-        room = Room.objects.get(
-            id=room_id
+        room = get_object_or_404(
+            Room,
+            id=room_id,
         )
 
         is_member = RoomMember.objects.filter(
@@ -39,12 +41,23 @@ class MessageHistoryView(APIView):
             Message.objects
             .filter(room=room)
             .select_related("user")
-            .order_by("created_at")
+            .order_by("-created_at")
+        )
+
+        paginator = PageNumberPagination()
+
+        paginator.page_size = 20
+
+        result_page = paginator.paginate_queryset(
+            messages,
+            request,
         )
 
         serializer = MessageSerializer(
-            messages,
+            result_page,
             many=True,
         )
 
-        return Response(serializer.data)
+        return paginator.get_paginated_response(
+            serializer.data
+        )

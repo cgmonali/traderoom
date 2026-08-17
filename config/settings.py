@@ -93,6 +93,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+REST_FRAMEWORK = {
+    # your existing settings...
+
+    "DEFAULT_PAGINATION_CLASS": (
+        "rest_framework.pagination.PageNumberPagination"
+    ),
+    "PAGE_SIZE": 20,
+}
+
+
+
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
